@@ -1,0 +1,46 @@
+version: "3.3"
+services:
+    prometheus:
+        image: prom/prometheus
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: any
+        ports:
+            -  80:9090
+        # networks:
+        #     - prom-stag
+        volumes:
+            - prometheus_data:/prometheus
+        configs:
+            - source: prom-config
+              target: /etc/prometheus/prometheus.yml
+            - source: alert.rules
+              target: /etc/prometheus/alert.rules
+    alertmanager:
+        image: prom/alertmanager
+        depends_on:
+            - prometheus
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: any
+        volumes:
+            - alertmanager_data:/alertmanager        
+        # networks:
+        #     - prom-stag
+        configs:
+            - source: alertmanager-config
+              target: /etc/alertmanager/config.yml
+volumes:
+    prometheus_data:
+    alertmanager_data:
+configs:
+    prom-config:
+        file: /etc/prometheus/prometheus.yml
+    alertmanager-config:
+        file: /etc/alertmanager/config.yml
+    alert.rules:
+        file: /etc/alertmanager/alert.rules
+# networks: 
+#     prom-stag
