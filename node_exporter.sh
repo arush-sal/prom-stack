@@ -60,13 +60,13 @@ start_node() {
     echo " Enter 'systemd' to create systemd service file or 'init' to create sysvinit script. "
     read filetype
     if [ "$filetype" == "init" ]; then
-        $SUDO $DOWNLOADER https://gist.githubusercontent.com/arush-sal/be9731d59b2850f5eff3f8754b9e8d36/raw/4b3fe571ed536c200935dc6d9b585a1d2e3587b6/node_exporter.init.d \
+        $SUDO $DOWNLOADER https://raw.githubusercontent.com/arush-sal/prom-stack/master/node_exporter.init.d \
             $DOWNLOAD_OPTION /etc/init.d/node_exporter
         $SUDO chmod +x /etc/init.d/node_exporter
         $SUDO service node_exporter start
         service_status
     elif [ "$filetype" == "systemd" ]; then
-        $SUDO $DOWNLOADER https://gist.githubusercontent.com/arush-sal/be9731d59b2850f5eff3f8754b9e8d36/raw/efbd705826519e92adc8eeba69017a971c8b4a6b/node_exporter.service \
+        $SUDO $DOWNLOADER https://raw.githubusercontent.com/arush-sal/prom-stack/master/node_exporter.service.systemd \
             $DOWNLOAD_OPTION /etc/systemd/system/node_exporter.service
         $SUDO systemctl daemon-reload
         $SUDO systemctl start node_exporter
