@@ -1,15 +1,17 @@
 version: "3.3"
 services:
     prometheus:
-        image: prom/prometheus
+        image: prom/prometheus:latest
+        ports:
+            - "9090:9090"
         deploy:
             replicas: 1
             restart_policy:
                 condition: any
-        ports:
-            -  80:9090
-        # networks:
-        #     - prom-stag
+            placement:
+                constraints: [node.role == manager]
+        networks:
+            - prom-net
         volumes:
             - prometheus_data:/prometheus
         configs:
@@ -18,23 +20,65 @@ services:
             - source: alert.rules
               target: /etc/prometheus/alert.rules
     alertmanager:
-        image: prom/alertmanager
+        image: prom/alertmanager:latest
         depends_on:
             - prometheus
         deploy:
             replicas: 1
             restart_policy:
                 condition: any
+            placement:
+                constraints: [node.role == manager]
         volumes:
-            - alertmanager_data:/alertmanager        
-        # networks:
-        #     - prom-stag
+            - alertmanager_data:/alertmanager
+        networks:
+            - prom-net
         configs:
             - source: alertmanager-config
               target: /etc/alertmanager/config.yml
+    cadvisor:
+        image: google/cadvisor:latest
+        ports:
+            - "8080:8080"
+        deploy:
+            restart_policy:
+                condition: any
+            mode: global
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:rw
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+        networks:
+            - prom-net
+    engine-proxy:
+        image: basi/socat
+        ports:
+            - "4998:4999"
+        deploy:
+            restart_policy:
+                condition: any
+            mode: global
+        networks:
+            - prom-net
+    grafana:
+        image: grafana/grafana:latest
+        ports:
+            -  "80:3000"
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: any
+            placement:
+                constraints: [node.role == manager]
+        volumes:
+            - grafana_data:/var/lib/grafana
+        networks:
+            - grafana-net
 volumes:
     prometheus_data:
     alertmanager_data:
+    grafana_data:
 configs:
     prom-config:
         file: /etc/prometheus/prometheus.yml
@@ -42,5 +86,6 @@ configs:
         file: /etc/alertmanager/config.yml
     alert.rules:
         file: /etc/alertmanager/alert.rules
-# networks: 
-#     prom-stag
+networks: 
+    prom-net:
+    grafana-net:
