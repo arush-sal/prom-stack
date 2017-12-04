@@ -69,6 +69,7 @@ start_node() {
         $SUDO $DOWNLOADER https://raw.githubusercontent.com/arush-sal/prom-stack/master/node_exporter.service.systemd \
             $DOWNLOAD_OPTION /etc/systemd/system/node_exporter.service
         $SUDO systemctl daemon-reload
+        $SUDO systemctl enable node_exporter
         $SUDO systemctl start node_exporter
         service_status
     else
